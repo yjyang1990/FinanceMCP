@@ -42,11 +42,16 @@ export const indexData = {
         throw new Error(`未找到指数${args.code}的数据`);
       }
 
-      // 获取历史数据
+      // 获取历史数据 - 为了计算第一天的涨跌幅，需要获取前一天的数据
       let historicalData: any[] = [];
       try {
+        // 计算前一天日期用于获取完整的涨跌幅数据
+        const prevDate = new Date(startDate);
+        prevDate.setDate(prevDate.getDate() - 1);
+        const extendedStartDate = prevDate.toISOString().slice(0, 10);
+
         const chartData = await yahooFinance.chart(args.code, {
-          period1: startDate,
+          period1: extendedStartDate, // 从前一天开始获取
           period2: endDate,
           interval: '1d'
         });
@@ -83,6 +88,7 @@ export const indexData = {
             pct_chg: pct_chg
           };
         }).filter(item => item.open && item.close) // 过滤无效数据
+          .filter(item => item.date >= startDate && item.date <= endDate) // 只保留用户请求的日期范围
           .reverse(); // 反转顺序，使最新日期在前
 
         // 检查是否需要补充当前数据
@@ -90,8 +96,8 @@ export const indexData = {
         const requestedEndDate = endDate;
         const quoteDate = quote.regularMarketTime ? new Date(quote.regularMarketTime).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
 
-        // 如果请求的结束日期比最新历史数据更新，且有当前报价数据，则补充
-        if (latestHistoricalDate && requestedEndDate > latestHistoricalDate && quote.regularMarketPrice) {
+        // 如果请求的结束日期比最新历史数据更新，且有当前报价数据，且当前日期在请求范围内，则补充
+        if (latestHistoricalDate && requestedEndDate > latestHistoricalDate && quote.regularMarketPrice && quoteDate <= endDate) {
           // 计算相对于最近历史数据的涨跌幅
           let currentChange = quote.regularMarketChange || 0;
           let currentPctChg = quote.regularMarketChangePercent?.toFixed(2) || '0.00';
