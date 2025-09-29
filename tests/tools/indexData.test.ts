@@ -1,4 +1,4 @@
-import { indexData } from '../../build/tools/indexData.js';
+import { indexData } from '../../src/tools/indexData.js';
 
 async function testIndexData() {
   console.log('=== 指数数据获取测试 ===\n');
