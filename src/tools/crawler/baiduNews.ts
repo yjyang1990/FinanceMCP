@@ -107,28 +107,31 @@ function parseBaiduNews(html: string, searchQuery: string): NewsItem[] {
 // 从单个百度新闻区块中提取完整信息
 function extractNewsFromBaiduItem(itemHtml: string, searchQuery: string): NewsItem | null {
   try {
-    // 标题和链接通常在 h3 > a 标签中
-    const titleMatch = itemHtml.match(/<h3[^>]*><a[^>]*href="([^"]*)"[^>]*>([^<]*(?:<[^>]*>[^<]*)*)<\/a><\/h3>/);
-    
-    // 摘要信息
-    const summaryMatch = itemHtml.match(/<div[^>]*class="[^"]*c-abstract[^"]*"[^>]*>([^<]+(?:<br\s*\/?>[^<]+)*)<\/div>/);
-    
-    // 时间信息
-    const timeMatch = itemHtml.match(/<span[^>]*class="[^"]*c-color-gray2[^"]*"[^>]*aria-label="发布于：([^"]*)"[^>]*>([^<]*)<\/span>/);
-    
+    // 标题和链接 - 更新为实际的HTML结构
+    const titleMatch = itemHtml.match(/<h3[^>]*>.*?<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>.*?<\/h3>/s);
+
+    // 摘要信息 - 尝试多种可能的class名
+    const summaryMatch = itemHtml.match(/<div[^>]*class="[^"]*(?:c-abstract|news-desc|desc)[^"]*"[^>]*>([^<]+(?:<br\s*\/?>[^<]+)*)<\/div>/);
+
+    // 时间信息 - 尝试多种可能的时间格式
+    const timeMatch = itemHtml.match(/<span[^>]*class="[^"]*(?:c-color-gray2|news-time|time)[^"]*"[^>]*(?:aria-label="发布于：([^"]*)"[^>]*>([^<]*)|>([^<]*))<\/span>/);
+
     if (titleMatch && titleMatch[1] && titleMatch[2]) {
       const url = titleMatch[1];
       const title = titleMatch[2].replace(/<[^>]*>/g, '').trim();
-      
+
       // 摘要是可选的，默认为标题
-      let summary = title; 
+      let summary = title;
       if (summaryMatch && summaryMatch[1]) {
           summary = summaryMatch[1].replace(/<br\s*\/?>/g, ' ').replace(/<[^>]*>/g, '').trim();
       }
 
-      // 时间也是可选的
-      const time = timeMatch ? timeMatch[2].trim() : '';
-      
+      // 时间也是可选的 - 处理不同的匹配组
+      let time = '';
+      if (timeMatch) {
+        time = (timeMatch[2] || timeMatch[3] || timeMatch[1] || '').trim();
+      }
+
       // 必须有标题和链接，且包含关键词
       if (title && url && containsKeywords(title + summary, searchQuery)) {
         return {
@@ -144,7 +147,7 @@ function extractNewsFromBaiduItem(itemHtml: string, searchQuery: string): NewsIt
   } catch (error) {
     console.error('解析百度新闻项出错:', error);
   }
-  
+
   return null;
 }
 
