@@ -6,7 +6,7 @@ async function testBaiduNews() {
   // 测试1: 股票关键词
   console.log('1. 测试股票关键词:');
   try {
-    const stockResult = await searchBaiduNews(['股票']);
+    const stockResult = await searchBaiduNews(['002115', '股票']);
     console.log(`结果数量: ${stockResult.length}`);
     if (stockResult.length > 0) {
       console.log('前3条结果:');

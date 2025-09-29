@@ -107,7 +107,52 @@ function parseBaiduNews(html: string, searchQuery: string): NewsItem[] {
 // 从单个百度新闻区块中提取完整信息
 function extractNewsFromBaiduItem(itemHtml: string, searchQuery: string): NewsItem | null {
   try {
-    // 标题和链接 - 更新为实际的HTML结构
+    // 策略1: 解析s-data注释中的结构化数据
+    const dataMatch = itemHtml.match(/<!--s-data:(.*?)-->/);
+    if (dataMatch) {
+      try {
+        const newsData = JSON.parse(dataMatch[1]);
+        if (newsData.title && newsData.titleUrl) {
+          const title = newsData.title.replace(/<[^>]*>/g, '').trim();
+          const summary = (newsData.summary || title).replace(/<[^>]*>/g, '').trim();
+          const source = newsData.sourceName || '百度新闻';
+          const publishTime = newsData.dispTime || '未知时间';
+
+          if (containsKeywords(title + summary, searchQuery)) {
+            return {
+              title,
+              summary,
+              url: newsData.titleUrl,
+              source,
+              publishTime,
+              keywords: searchQuery.split(' ').filter(k => k.trim().length > 0)
+            };
+          }
+        }
+      } catch (jsonError) {
+        // JSON解析失败，继续下一个策略
+      }
+    }
+
+    // 策略2: 解析新版HTML结构 (news-title class)
+    const newTitleMatch = itemHtml.match(/<h3[^>]*class="[^"]*news-title[^"]*"[^>]*>.*?<a[^>]*href="([^"]*)"[^>]*[^>]*aria-label="[^"]*：([^"]*)"[^>]*>/s);
+    if (newTitleMatch && newTitleMatch[1] && newTitleMatch[2]) {
+      const url = newTitleMatch[1];
+      const title = newTitleMatch[2].replace(/<[^>]*>/g, '').trim();
+
+      if (containsKeywords(title, searchQuery)) {
+        return {
+          title,
+          summary: title,
+          url: url,
+          source: '百度新闻',
+          publishTime: '未知时间',
+          keywords: searchQuery.split(' ').filter(k => k.trim().length > 0)
+        };
+      }
+    }
+
+    // 策略3: 原有的HTML结构解析
     const titleMatch = itemHtml.match(/<h3[^>]*>.*?<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>.*?<\/h3>/s);
 
     // 摘要信息 - 尝试多种可能的class名
