@@ -18,7 +18,10 @@
     "setup": "node build-setup.js",
     "start:http": "node build/httpServer.js",
     "start:stdio": "node build/index.js",
-    "start:sse": "npx supergateway --stdio \"node build/index.js\" --port 3100"
+    "start:sse": "npx supergateway --stdio \"node build/index.js\" --port 3100",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "0.6.0",
@@ -29,7 +32,10 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.11.24",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.4",
     "typescript": "^5.3.3"
   }
 }

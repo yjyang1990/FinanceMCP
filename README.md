@@ -24,6 +24,7 @@
 我们提供多种免费公共云服务选项：
 
 ### 🌐 Web在线体验版
+
 **🚀 最简单的使用方式！**
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/5a81b053-4d19-4285-b5a2-991d14425595" />
@@ -40,6 +41,7 @@
 ### ⚙️ Claude桌面版配置
 
 #### 🆕 最新版本(v4.3.0) - 使用您的API密钥
+
 **🎯 推荐生产环境使用，配置您自己的Tushare令牌：**
 
 ```json
@@ -59,11 +61,13 @@
 ```
 
 **🔑 如何获取您的Tushare令牌：**
+
 1. 在 [tushare.pro](https://tushare.pro/register) 注册账户
 2. 从个人中心获取API令牌
 3. 将 `您的tushare令牌` 替换为您的实际令牌
 
 #### 🎁 传统免费服务(有限制)
+
 您也可以使用我们的共享服务，无需API密钥(可能有速率限制)：
 
 ```json
@@ -80,6 +84,7 @@
 ```
 
 **服务优势:**
+
 - ✅ **最新版本(v4.3.0)** - 使用您自己的API密钥，享受无限制访问
 - ✅ **7×24可用** - 服务器持续运行
 - ✅ **完整功能** - 全部14个工具和技术指标
@@ -92,12 +97,14 @@
 ## ⚡ 核心特色
 
 ### 🧠 智能技术指标系统
+
 - **智能数据预取** - 自动计算所需历史数据，消除NaN值
-- **强制参数化** - 要求明确指定参数（如`macd(12,26,9)`）确保精确性
+- **强制参数化** - 要求明确指定参数（如 `macd(12,26,9)`）确保精确性
 - **模块化架构** - 参数解析、数据计算、指标引擎完全解耦
 - **5大核心指标** - MACD、RSI、KDJ、BOLL、MA
 
 ### 🌍 全面市场覆盖
+
 - **10大市场** - A股、美股、港股、外汇、期货、基金、债券、期权
 - **实时新闻** - 智能搜索7+主流财经媒体
 - **宏观数据** - 11个经济指标（GDP、CPI、PPI、PMI等）
@@ -105,34 +112,36 @@
 
 ## 🛠️ 工具概览
 
-| 工具名称 | 功能描述 | 核心特色 |
-|---------|---------|---------|
-| 🕐 **current_timestamp** | 当前时间戳 | UTC+8时区，多种输出格式 |
-| 📰 **finance_news** | 财经新闻搜索 | 百度新闻爬虫；入参：`query`（空格分隔多关键词，OR 过滤） |
-| 📈 **stock_data** | 股票/加密 + 技术指标 | 10大市场+加密(Binance默认)+5技术指标，智能预取 |
-| 📊 **index_data** | 指数数据 | 主要市场指数历史数据 |
-| 🧱 **csi_index_constituents** | CSI指数成分与权重摘要 | 仅支持中证指数公司(CSI)，指数区间行情 + 成分股权重与区间涨跌幅 + 估值/财务指标（PE、PB、股息率、ROE、ROA、净利率、经营现金流、资产负债率、营收同比、资产周转率、毛利率、三费比率、现金分红率） |
-| 📉 **macro_econ** | 宏观经济数据 | 11指标：GDP/CPI/PPI/PMI/Shibor等 |
-| 🏢 **company_performance** | A股公司财务分析 | 财务报表+管理层+基本面，13数据类型 |
-| 🏛️ **company_performance_hk** | 港股公司财务分析 | 港股利润表、资产负债表、现金流量表 |
-| 🇺🇸 **company_performance_us** | 美股公司财务分析 | 美股4大财务报表+综合财务指标分析 |
-| 💰 **fund_data** | 基金数据 | 净值/持仓/分红，85%性能优化 |
-| 👨‍💼 **fund_manager_by_name** | 基金经理查询 | 个人背景、管理基金列表 |
-| 🪙 **convertible_bond** | 可转债数据 | 基本信息+发行数据+转换条款 |
-| 🔄 **block_trade** | 大宗交易数据 | 交易详情+交易对手信息 |
-| 💹 **money_flow** | 资金流向数据 | 主力/超大单/大单/中单/小单流向分析 |
-| 💰 **margin_trade** | 融资融券数据 | 4个API：标的股票/汇总/明细/转融券 |
-| 🐯 **dragon_tiger_inst** | 龙虎榜机构明细 | 指定交易日(可选代码)，买卖额/比例/净额/理由表格 |
-| 🔥 **hot_news_7x24** | 7×24 热点 | 基于 Tushare 最新批次（单次至多1500条），内容相似度80%去重，条目间以`---`分隔 |
+| 工具名称                             | 功能描述              | 核心特色                                                                                                                                                                                       |
+| ------------------------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🕐**current_timestamp**        | 当前时间戳            | UTC+8时区，多种输出格式                                                                                                                                                                        |
+| 📰**finance_news**             | 财经新闻搜索          | 百度新闻爬虫；入参：`query`（空格分隔多关键词，OR 过滤）                                                                                                                                     |
+| 📈**stock_data**               | 股票/加密 + 技术指标  | 10大市场+加密(Binance默认)+5技术指标，智能预取                                                                                                                                                 |
+| 📊**index_data**               | 指数数据              | 主要市场指数历史数据                                                                                                                                                                           |
+| 🧱**csi_index_constituents**   | CSI指数成分与权重摘要 | 仅支持中证指数公司(CSI)，指数区间行情 + 成分股权重与区间涨跌幅 + 估值/财务指标（PE、PB、股息率、ROE、ROA、净利率、经营现金流、资产负债率、营收同比、资产周转率、毛利率、三费比率、现金分红率） |
+| 📉**macro_econ**               | 宏观经济数据          | 11指标：GDP/CPI/PPI/PMI/Shibor等                                                                                                                                                               |
+| 🏢**company_performance**      | A股公司财务分析       | 财务报表+管理层+基本面，13数据类型                                                                                                                                                             |
+| 🏛️**company_performance_hk** | 港股公司财务分析      | 港股利润表、资产负债表、现金流量表                                                                                                                                                             |
+| 🇺🇸**company_performance_us** | 美股公司财务分析      | 美股4大财务报表+综合财务指标分析                                                                                                                                                               |
+| 💰**fund_data**                | 基金数据              | 净值/持仓/分红，85%性能优化                                                                                                                                                                    |
+| 👨‍💼**fund_manager_by_name** | 基金经理查询          | 个人背景、管理基金列表                                                                                                                                                                         |
+| 🪙**convertible_bond**         | 可转债数据            | 基本信息+发行数据+转换条款                                                                                                                                                                     |
+| 🔄**block_trade**              | 大宗交易数据          | 交易详情+交易对手信息                                                                                                                                                                          |
+| 💹**money_flow**               | 资金流向数据          | 主力/超大单/大单/中单/小单流向分析                                                                                                                                                             |
+| 💰**margin_trade**             | 融资融券数据          | 4个API：标的股票/汇总/明细/转融券                                                                                                                                                              |
+| 🐯**dragon_tiger_inst**        | 龙虎榜机构明细        | 指定交易日(可选代码)，买卖额/比例/净额/理由表格                                                                                                                                                |
+| 🔥**hot_news_7x24**            | 7×24 热点            | 基于 Tushare 最新批次（单次至多1500条），内容相似度80%去重，条目间以 `---`分隔                                                                                                               |
 
 ## 🎯 技术亮点
 
 ### 智能技术指标引擎
+
 ```
 用户请求 → 参数解析 → 数据需求计算 → 扩展历史数据获取 → 指标计算 → 结果返回
 ```
 
 **支持的指标:**
+
 - **MACD** `macd(12,26,9)` - 趋势分析
 - **RSI** `rsi(14)` - 超买超卖判断
 - **KDJ** `kdj(9,3,3)` - 随机指标
@@ -140,24 +149,29 @@
 - **MA** `ma(5/10/20/60)` - 移动平均线
 
 ### 核心技术优势
+
 1. **智能预取** - 自动计算并获取指标所需的额外历史数据
 2. **参数强制** - 避免默认参数造成的计算差异
 3. **高性能** - 基金数据查询性能提升85%（5.2s→0.8s）
 4. **数据集成** - 无缝集成43+个Tushare API接口
- 
+
 <!-- 移除内嵌 Mermaid，可跳转至独立 HTML -->
+
 <!-- 参见 pain-method-gain.html -->
 
 ## 🚀 快速开始
 
 ### 1. 使用公共云服务(推荐)
+
 复制上方JSON配置到Claude桌面配置文件，重启Claude即可开始使用！
 
 ### 2. 配置文件位置
+
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ### 3. 开始使用
+
 配置完成后，直接在Claude中提问即可！
 
 ## 💡 示例查询
@@ -268,6 +282,7 @@
 如果需要本地部署，请按以下步骤操作：
 
 ### 环境要求
+
 - **Node.js >= 18** - 从[nodejs.org](https://nodejs.org/)下载
 - **Tushare API令牌** - 从[tushare.pro](https://tushare.pro)获取
 
@@ -279,6 +294,7 @@
 3. **积分说明** - 部分高级数据需要积分
 
 **学生福利** - 申请2000免费积分：
+
 - 关注Tushare官方小红书并互动
 - 加入学生QQ群：**290541801**
 - 完善个人信息（学校邮箱/学号）
@@ -289,6 +305,7 @@
 ### 安装步骤
 
 #### 方法1：通过npm包安装(推荐)
+
 ```bash
 # 全局安装
 npm install -g finance-mcp
@@ -298,6 +315,7 @@ npm install finance-mcp
 ```
 
 安装后可以直接使用：
+
 ```bash
 # 如果全局安装
 finance-mcp
@@ -307,11 +325,13 @@ npx finance-mcp
 ```
 
 #### 方法2：通过Smithery安装
+
 ```bash
 npx -y @smithery/cli install @guangxiangdebizi/finance-mcp --client claude
 ```
 
 #### 方法3：手动安装
+
 ```bash
 # 1. 克隆仓库
 git clone https://github.com/guangxiangdebizi/FinanceMCP.git
@@ -331,6 +351,7 @@ npm run build
 ### 启动服务
 
 **Streamable HTTP 模式（推荐）**
+
 ```bash
 npm run build
 node build/httpServer.js
@@ -339,22 +360,26 @@ npm run start:http
 ```
 
 **SSE 模式**
+
 ```bash
 npm run build
 npm run start:sse
 ```
 
 服务启动后：
+
 - MCP 端点: `http://localhost:3000/mcp`
 - 健康检查: `http://localhost:3000/health`
 
 ### Claude配置
 
 配置文件位置：
+
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 #### 最新配置：Streamable HTTP 模式（通过 Header 传入 Token）
+
 ```json
 {
   "mcpServers": {
@@ -371,6 +396,7 @@ npm run start:sse
 ```
 
 #### 传递 Token 的 Header 规则
+
 - 优先从 `X-Tushare-Token` 读取；
 - 若未提供，则尝试 `Authorization: Bearer <token>`；
 - 再次回退读取 `X-Api-Key`；
@@ -379,6 +405,7 @@ npm run start:sse
 （加密市场默认使用 Binance 公共行情接口，无需任何加密货币 API Key）
 
 ### 验证安装
+
 配置完成后，重启Claude桌面版并询问："获取当前时间"。如果返回时间信息，说明安装成功。
 
 </details>
@@ -495,8 +522,8 @@ arguments:
 
 ---
 
-**👨‍💻 作者**: 陈星宇  
-**📧 邮箱**: guangxiangdebizi@gmail.com  
+**👨‍💻 作者**: 陈星宇
+**📧 邮箱**: guangxiangdebizi@gmail.com
 **🔗 GitHub**: [guangxiangdebizi](https://github.com/guangxiangdebizi)
 
 ⭐ 如果这个项目对您有帮助，请给我们一个Star！
