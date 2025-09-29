@@ -17,18 +17,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Run tests with coverage reporting
 
+#### Individual Tool Testing
+
+All test files are located in `/tests` directory following the same structure as the source code:
+
+```bash
+# Run specific tool test directly with tsx
+npx tsx tests/tools/macroEconReal.test.ts
+npx tsx tests/tools/[toolName].test.ts
+
+# Or with Jest (Node.js experimental VM modules)
+NODE_OPTIONS=--experimental-vm-modules jest tests/tools/macroEconReal.test.ts
+```
+
 ### Server Deployment
 
 - `npm run start:http` - Start HTTP server mode (port 3000)
 - `npm run start:stdio` - Start STDIO mode for MCP
 - `npm run start:sse` - Start SSE mode using Supergateway (port 3100)
 - `npm run inspector` - Launch MCP inspector for debugging
-
-### Single Test Execution
-
-```bash
-NODE_OPTIONS=--experimental-vm-modules jest tests/path/to/specific.test.ts
-```
 
 ## Architecture Overview
 
@@ -88,9 +95,87 @@ The `src/tools/stockDataDetail/` directory contains a sophisticated technical in
 - `COINGECKO_API_KEY` - CoinGecko API key for crypto data
 - `NODE_ENV` - Environment mode (development/production)
 
-## Testing Strategy `tests`
+## Testing Strategy
 
-- Unit tests focus on individual tools and utilities
-- Uses Jest with TypeScript support
-- Experimental VM modules required for ES modules compatibility
-- Coverage reporting available for quality assurance
+All test files are organized in the `/tests` directory, mirroring the source structure. Tests focus on integration testing of individual financial tools with real API interactions.
+
+### Test File Structure
+
+```
+/tests
+├── tools/
+│   ├── macroEconReal.test.ts
+│   ├── [toolName].test.ts
+│   └── ...
+└── utils/
+    └── [utilityName].test.ts
+```
+
+### Test Template
+
+Each tool test file should follow this pattern:
+
+```typescript
+import { toolName } from '../../src/tools/toolName.js';
+
+/**
+ * 集成测试：测试[工具名称]
+ * 包含API数据获取和错误处理功能测试
+ */
+
+async function testToolName() {
+  console.log('=== [工具名称]测试 ===\n');
+
+  // 测试1: 正常数据获取
+  console.log('1. 测试正常数据获取:');
+  try {
+    const result = await toolName.run({
+      // 正常参数
+    });
+
+    console.log('✓ 数据获取成功');
+    console.log('响应内容类型:', typeof result.content[0].text);
+    console.log('响应内容长度:', result.content[0].text.length, '字符');
+
+    // 验证返回内容
+    const content = result.content[0].text;
+    if (content.includes('expected_content')) {
+      console.log('✓ 包含预期内容');
+    }
+
+    console.log('\n=== 完整返回内容 ===');
+    console.log(content);
+    console.log('=== 完整内容结束 ===\n');
+
+  } catch (error) {
+    console.error('数据获取测试失败:', error);
+  }
+
+  // 测试2: 错误处理
+  console.log('2. 测试错误处理:');
+  try {
+    const result = await toolName.run({
+      // 错误参数
+    });
+
+    const content = result.content[0].text;
+    if (content.includes('错误信息')) {
+      console.log('✓ 正确处理错误情况');
+    }
+  } catch (error) {
+    console.error('错误处理测试失败:', error);
+  }
+
+  console.log('测试完成!');
+}
+
+// 运行测试
+testToolName().catch(console.error);
+```
+
+### Test Execution
+
+- **Framework**: Jest with TypeScript support and experimental VM modules
+- **Integration Tests**: Focus on real API interactions and error handling
+- **Execution**: `npx tsx tests/tools/[toolName].test.ts` for direct execution
+- **Coverage**: Available through Jest with `npm run test:coverage`
