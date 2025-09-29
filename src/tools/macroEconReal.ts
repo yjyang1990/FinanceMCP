@@ -131,28 +131,28 @@ function formatData(data: any[], indicator: string): string {
     // 根据不同指标获取对应字段
     switch (indicator) {
       case 'cpi':
-        value = item.NATIONAL_SAME || item.value || '暂无';
-        yoy = item.NATIONAL_SAME || item.yoy || '暂无';
+        value = (item.NATIONAL_SAME !== null && item.NATIONAL_SAME !== undefined) ? item.NATIONAL_SAME : (item.value !== null && item.value !== undefined) ? item.value : '暂无';
+        yoy = (item.NATIONAL_SAME !== null && item.NATIONAL_SAME !== undefined) ? item.NATIONAL_SAME : (item.yoy !== null && item.yoy !== undefined) ? item.yoy : '暂无';
         break;
       case 'pmi':
-        value = item.MAKE_INDEX || item.value || '暂无';
-        yoy = item.MAKE_SAME || item.yoy || '暂无';
+        value = (item.MAKE_INDEX !== null && item.MAKE_INDEX !== undefined) ? item.MAKE_INDEX : (item.value !== null && item.value !== undefined) ? item.value : '暂无';
+        yoy = (item.MAKE_SAME !== null && item.MAKE_SAME !== undefined) ? item.MAKE_SAME : (item.yoy !== null && item.yoy !== undefined) ? item.yoy : '暂无';
         break;
       case 'gdp':
-        value = item.DOMESTICL_PRODUCT_BASE ? (item.DOMESTICL_PRODUCT_BASE / 10000).toFixed(2) + '万亿元' : item.value || '暂无';
-        yoy = item.SUM_SAME || item.yoy || '暂无';
+        value = (item.DOMESTICL_PRODUCT_BASE !== null && item.DOMESTICL_PRODUCT_BASE !== undefined) ? (item.DOMESTICL_PRODUCT_BASE / 10000).toFixed(2) + '万亿元' : (item.value !== null && item.value !== undefined) ? item.value : '暂无';
+        yoy = (item.SUM_SAME !== null && item.SUM_SAME !== undefined) ? item.SUM_SAME : (item.yoy !== null && item.yoy !== undefined) ? item.yoy : '暂无';
         break;
       case 'ppi':
-        value = item.BASE || item.value || '暂无';
-        yoy = item.BASE_SAME || item.yoy || '暂无';
+        value = (item.BASE !== null && item.BASE !== undefined) ? item.BASE : (item.value !== null && item.value !== undefined) ? item.value : '暂无';
+        yoy = (item.BASE_SAME !== null && item.BASE_SAME !== undefined) ? item.BASE_SAME : (item.yoy !== null && item.yoy !== undefined) ? item.yoy : '暂无';
         break;
       case 'm2':
-        value = item.BASIC_CURRENCY ? (item.BASIC_CURRENCY / 10000).toFixed(2) + '万亿元' : item.value || '暂无';
-        yoy = item.BASIC_CURRENCY_SAME || item.yoy || '暂无';
+        value = (item.BASIC_CURRENCY !== null && item.BASIC_CURRENCY !== undefined) ? (item.BASIC_CURRENCY / 10000).toFixed(2) + '万亿元' : (item.value !== null && item.value !== undefined) ? item.value : '暂无';
+        yoy = (item.BASIC_CURRENCY_SAME !== null && item.BASIC_CURRENCY_SAME !== undefined) ? item.BASIC_CURRENCY_SAME : (item.yoy !== null && item.yoy !== undefined) ? item.yoy : '暂无';
         break;
       default:
-        value = item.value || '暂无';
-        yoy = item.yoy || '暂无';
+        value = (item.value !== null && item.value !== undefined) ? item.value : '暂无';
+        yoy = (item.yoy !== null && item.yoy !== undefined) ? item.yoy : '暂无';
     }
 
     return `## ${date}\n**${getIndicatorName(indicator)}**: ${value}\n**同比变化**: ${yoy}%\n`;
@@ -172,28 +172,28 @@ function generateAnalysis(data: any[], indicator: string): string {
   // 根据不同指标获取对应字段
   switch (indicator) {
     case 'cpi':
-      latestValue = latest.NATIONAL_SAME || latest.value || 0;
-      previousValue = previous.NATIONAL_SAME || previous.value || 0;
+      latestValue = (latest.NATIONAL_SAME !== null && latest.NATIONAL_SAME !== undefined) ? latest.NATIONAL_SAME : (latest.value !== null && latest.value !== undefined) ? latest.value : 0;
+      previousValue = (previous.NATIONAL_SAME !== null && previous.NATIONAL_SAME !== undefined) ? previous.NATIONAL_SAME : (previous.value !== null && previous.value !== undefined) ? previous.value : 0;
       break;
     case 'pmi':
-      latestValue = latest.MAKE_INDEX || latest.value || 0;
-      previousValue = previous.MAKE_INDEX || previous.value || 0;
+      latestValue = (latest.MAKE_INDEX !== null && latest.MAKE_INDEX !== undefined) ? latest.MAKE_INDEX : (latest.value !== null && latest.value !== undefined) ? latest.value : 0;
+      previousValue = (previous.MAKE_INDEX !== null && previous.MAKE_INDEX !== undefined) ? previous.MAKE_INDEX : (previous.value !== null && previous.value !== undefined) ? previous.value : 0;
       break;
     case 'gdp':
-      latestValue = latest.SUM_SAME || latest.value || 0;
-      previousValue = previous.SUM_SAME || previous.value || 0;
+      latestValue = (latest.SUM_SAME !== null && latest.SUM_SAME !== undefined) ? latest.SUM_SAME : (latest.value !== null && latest.value !== undefined) ? latest.value : 0;
+      previousValue = (previous.SUM_SAME !== null && previous.SUM_SAME !== undefined) ? previous.SUM_SAME : (previous.value !== null && previous.value !== undefined) ? previous.value : 0;
       break;
     case 'ppi':
-      latestValue = latest.BASE || latest.value || 0;
-      previousValue = previous.BASE || previous.value || 0;
+      latestValue = (latest.BASE !== null && latest.BASE !== undefined) ? latest.BASE : (latest.value !== null && latest.value !== undefined) ? latest.value : 0;
+      previousValue = (previous.BASE !== null && previous.BASE !== undefined) ? previous.BASE : (previous.value !== null && previous.value !== undefined) ? previous.value : 0;
       break;
     case 'm2':
-      latestValue = latest.BASIC_CURRENCY_SAME || latest.value || 0;
-      previousValue = previous.BASIC_CURRENCY_SAME || previous.value || 0;
+      latestValue = (latest.BASIC_CURRENCY_SAME !== null && latest.BASIC_CURRENCY_SAME !== undefined) ? latest.BASIC_CURRENCY_SAME : (latest.value !== null && latest.value !== undefined) ? latest.value : 0;
+      previousValue = (previous.BASIC_CURRENCY_SAME !== null && previous.BASIC_CURRENCY_SAME !== undefined) ? previous.BASIC_CURRENCY_SAME : (previous.value !== null && previous.value !== undefined) ? previous.value : 0;
       break;
     default:
-      latestValue = latest.value || 0;
-      previousValue = previous.value || 0;
+      latestValue = (latest.value !== null && latest.value !== undefined) ? latest.value : 0;
+      previousValue = (previous.value !== null && previous.value !== undefined) ? previous.value : 0;
   }
 
   const change = latestValue - previousValue;
