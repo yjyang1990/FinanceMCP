@@ -25,9 +25,11 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "0.6.0",
+    "@types/iconv-lite": "^0.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "iconv-lite": "^0.7.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

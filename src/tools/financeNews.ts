@@ -8,6 +8,7 @@ export interface NewsItem {
   source: string;
   publishTime: string;
   keywords: string[];
+  content?: string; // 新闻正文内容（可选）
 }
 
 export const financeNews = {
@@ -52,8 +53,19 @@ export const financeNews = {
       
       // 简化返回格式，参考stock_data的格式
       const formattedNews = newsResults.map((news) => {
-        return `${news.title}\n来源: ${news.source}  时间: ${news.publishTime}\n摘要: ${news.summary}${news.url ? `\n链接: ${news.url}` : ''}\n`;
-      }).join('\n---\n\n');
+        let result = `${news.title}\n来源: ${news.source}  时间: ${news.publishTime}\n摘要: ${news.summary}`;
+
+        // 如果有正文内容，添加到输出中
+        if (news.content && news.content.trim().length > 0) {
+          result += `\n\n正文内容:\n${news.content}`;
+        }
+
+        if (news.url) {
+          result += `\n\n链接: ${news.url}`;
+        }
+
+        return result;
+      }).join('\n\n---\n\n');
       
       return {
         content: [

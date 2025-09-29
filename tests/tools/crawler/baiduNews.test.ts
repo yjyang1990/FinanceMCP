@@ -15,8 +15,18 @@ async function testBaiduNews() {
         console.log(`   来源: ${item.source}`);
         console.log(`   时间: ${item.publishTime}`);
         console.log(`   URL: ${item.url}`);
+        // 显示正文内容（如果有）
+        if (item.content && item.content.length > 0) {
+          console.log(`   正文: ${item.content} (${item.content.length}字符)`);
+        } else {
+          console.log(`   正文: 暂未获取`);
+        }
         console.log('');
       });
+
+      // 统计正文内容获取情况
+      const withContent = stockResult.filter(item => item.content && item.content.length > 0);
+      console.log(`正文内容获取统计: ${withContent.length}/${stockResult.length} 条新闻成功获取正文`);
     } else {
       console.log('未获取到搜索结果');
     }
