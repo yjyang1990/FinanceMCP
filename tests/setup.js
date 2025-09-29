@@ -1,4 +1,6 @@
 // Test setup file
+import { jest } from '@jest/globals';
+
 global.fetch = jest.fn();
 
 global.AbortController = jest.fn().mockImplementation(() => ({
