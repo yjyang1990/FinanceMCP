@@ -43,10 +43,13 @@ export async function fetchYahooFinanceData(params: YahooFinanceDataParams): Pro
   const endDate = parseDate(actualEndDate);
 
   try {
-    // 获取历史数据
+    // 获取历史数据 - Yahoo Finance API 的 period2 是不包含结束日期的，需要加一天
+    const extendedEndDate = new Date(endDate);
+    extendedEndDate.setDate(extendedEndDate.getDate() + 1);
+
     const chartData = await yahooFinance.chart(yahooSymbol, {
       period1: startDate,
-      period2: endDate,
+      period2: extendedEndDate,
       interval: '1d'
     });
 

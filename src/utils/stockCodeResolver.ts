@@ -90,7 +90,8 @@ function isValidStockCode(code: string): boolean {
  */
 async function fetchStockBasicInfo(stockCodes: string[]): Promise<StockInfo[]> {
   if (!TUSHARE_CONFIG.API_TOKEN) {
-    throw new Error('Tushare API Token未配置');
+    console.warn('Tushare API Token未配置，跳过股票代码解析');
+    return [];
   }
 
   const results: StockInfo[] = [];

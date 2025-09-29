@@ -1,4 +1,5 @@
 import { resolveStockCodes } from '../utils/stockCodeResolver.js';
+import { TUSHARE_CONFIG } from '../config.js';
 import {
   calculateRequiredDays,
   calculateExtendedStartDate
@@ -65,7 +66,6 @@ export const stockData = {
 
       const marketType = args.market_type.trim().toLowerCase();
       console.log(`使用的市场类型: ${marketType}`);
-      console.log(`使用Tushare API获取${marketType}市场股票${args.code}的行情数据`);
 
       // 解析技术指标参数
       const requestedIndicators = args.indicators ? args.indicators.trim().split(/\s+/) : [];
@@ -186,9 +186,9 @@ export const stockData = {
       // 生成技术指标说明
       const indicatorData = formatIndicatorExplanation({ indicators, requestedIndicators });
 
-      // 收集股票代码并生成说明（仅对股票市场）
+      // 收集股票代码并生成说明（仅对股票市场且有Tushare token时）
       let stockExplanation = '';
-      if (['cn', 'us', 'hk'].includes(marketType)) {
+      if (['cn', 'us', 'hk'].includes(marketType) && TUSHARE_CONFIG.API_TOKEN) {
         stockExplanation = await resolveStockCodes([args.code]);
       }
 
