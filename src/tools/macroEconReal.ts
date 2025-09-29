@@ -23,7 +23,6 @@ export const macroEconReal = {
 
   async run(args: { indicator: string; source?: string; count?: number }) {
     try {
-      const source = 'eastmoney'; // 强制使用东方财富
       const count = args.count || 12;
 
       console.log(`从东方财富获取${args.indicator}数据，条数：${count}`);
@@ -43,7 +42,7 @@ export const macroEconReal = {
           {
             type: "text",
             text: `# ${getIndicatorName(args.indicator)} 数据\n\n` +
-                 `📊 **数据源**: ${getSourceName(source)}\n` +
+                 `📊 **数据源**: ${getSourceName()}\n` +
                  `📅 **数据条数**: ${data.length} 条\n` +
                  `🔄 **更新时间**: ${new Date().toLocaleString('zh-CN')}\n\n` +
                  `${analysis}\n\n---\n\n${formattedData}\n\n` +
@@ -53,7 +52,10 @@ export const macroEconReal = {
       };
 
     } catch (error) {
-      console.error("获取宏观经济数据失败:", error);
+      // Only log unexpected errors, not expected validation errors
+      if (!(error instanceof Error && (error.message.includes('不支持指标') || error.message.includes('暂时不可用')))) {
+        console.error("获取宏观经济数据失败:", error);
+      }
       return {
         content: [
           {
@@ -70,12 +72,13 @@ export const macroEconReal = {
 
 // 从东方财富获取数据
 async function fetchFromEastMoney(indicator: string, count: number): Promise<any[]> {
+  // 可用的API配置 - 已验证的工作接口
   const apiUrls: Record<string, string> = {
     'cpi': 'https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=REPORT_DATE&sortTypes=-1&pageSize=' + count + '&pageNumber=1&reportName=RPT_ECONOMY_CPI&columns=REPORT_DATE%2CTIME%2CNATIONAL_SAME%2CNATIONAL_BASE%2CNATIONAL_SEQUENTIAL%2CNATIONAL_ACCUMULATE%2CCITY_SAME%2CCITY_BASE%2CCITY_SEQUENTIAL%2CCITY_ACCUMULATE%2CRURAL_SAME%2CRURAL_BASE%2CRURAL_SEQUENTIAL%2CRURAL_ACCUMULATE',
-    'pmi': 'https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=REPORT_DATE&sortTypes=-1&pageSize=' + count + '&pageNumber=1&reportName=RPT_ECONOMY_PMI&columns=REPORT_DATE%2CMAKE_INDEX%2CMAKE_SAME%2CNMAKE_INDEX%2CNMAKE_SAME%2CCOMPREHENSIVE_INDEX',
+    'pmi': 'https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=REPORT_DATE&sortTypes=-1&pageSize=' + count + '&pageNumber=1&reportName=RPT_ECONOMY_PMI&columns=REPORT_DATE%2CMAKE_INDEX%2CMAKE_SAME%2CNMAKE_INDEX%2CNMAKE_SAME',
     'gdp': 'https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=REPORT_DATE&sortTypes=-1&pageSize=' + count + '&pageNumber=1&reportName=RPT_ECONOMY_GDP&columns=REPORT_DATE%2CTIME%2CDOMESTICL_PRODUCT_BASE%2CFIRST_PRODUCT_BASE%2CSECOND_PRODUCT_BASE%2CTHIRD_PRODUCT_BASE%2CSUM_SAME%2CFIRST_SAME%2CSECOND_SAME%2CTHIRD_SAME',
     'ppi': 'https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=REPORT_DATE&sortTypes=-1&pageSize=' + count + '&pageNumber=1&reportName=RPT_ECONOMY_PPI&columns=REPORT_DATE%2CTIME%2CBASE%2CBASE_SAME%2CBASE_ACCUMULATE',
-    'm2': 'https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=REPORT_DATE&sortTypes=-1&pageSize=' + count + '&pageNumber=1&reportName=RPT_ECONOMY_MONEY_SUPPLY&columns=REPORT_DATE%2CM2_SAME_RATIO%2CM2_BASE_RATIO%2CM1_SAME_RATIO%2CM0_SAME_RATIO'
+    'm2': 'https://datacenter-web.eastmoney.com/api/data/v1/get?sortColumns=REPORT_DATE&sortTypes=-1&pageSize=' + count + '&pageNumber=1&reportName=RPT_ECONOMY_CURRENCY_SUPPLY&columns=REPORT_DATE%2CTIME%2CBASIC_CURRENCY%2CBASIC_CURRENCY_SAME%2CBASIC_CURRENCY_SEQUENTIAL%2CCURRENCY%2CCURRENCY_SAME%2CCURRENCY_SEQUENTIAL%2CFREE_CASH%2CFREE_CASH_SAME%2CFREE_CASH_SEQUENTIAL'
   };
 
   const url = apiUrls[indicator];
@@ -144,8 +147,8 @@ function formatData(data: any[], indicator: string): string {
         yoy = item.BASE_SAME || item.yoy || '暂无';
         break;
       case 'm2':
-        value = item.M2_SAME_RATIO || item.value || '暂无';
-        yoy = item.M2_SAME_RATIO || item.yoy || '暂无';
+        value = item.BASIC_CURRENCY ? (item.BASIC_CURRENCY / 10000).toFixed(2) + '万亿元' : item.value || '暂无';
+        yoy = item.BASIC_CURRENCY_SAME || item.yoy || '暂无';
         break;
       default:
         value = item.value || '暂无';
@@ -185,8 +188,8 @@ function generateAnalysis(data: any[], indicator: string): string {
       previousValue = previous.BASE || previous.value || 0;
       break;
     case 'm2':
-      latestValue = latest.M2_SAME_RATIO || latest.value || 0;
-      previousValue = previous.M2_SAME_RATIO || previous.value || 0;
+      latestValue = latest.BASIC_CURRENCY_SAME || latest.value || 0;
+      previousValue = previous.BASIC_CURRENCY_SAME || previous.value || 0;
       break;
     default:
       latestValue = latest.value || 0;
@@ -212,7 +215,7 @@ function getIndicatorName(indicator: string): string {
 }
 
 // 获取数据源名称
-function getSourceName(source: string): string {
+function getSourceName(): string {
   return '东方财富财经数据中心';
 }
 
@@ -220,15 +223,18 @@ function getSourceName(source: string): string {
 function getSupportedOptions(): string {
   return `## 📋 支持的选项\n\n` +
     `### 🎯 指标类型 (indicator)\n` +
-    `- **cpi**: 居民消费价格指数\n` +
-    `- **pmi**: 采购经理指数\n` +
-    `- **gdp**: 国内生产总值增长率\n` +
-    `- **ppi**: 工业生产者出厂价格指数\n` +
-    `- **m2**: 货币供应量M2增长率\n\n` +
+    `- **cpi**: 居民消费价格指数 ✅\n` +
+    `- **pmi**: 采购经理指数 ✅\n` +
+    `- **gdp**: 国内生产总值增长率 ✅\n` +
+    `- **ppi**: 工业生产者出厂价格指数 ✅\n` +
+    `- **m2**: 货币供应量M2增长率 ✅\n\n` +
     `### 🌐 数据源 (source)\n` +
     `- **eastmoney**: 东方财富（唯一支持的数据源）\n\n` +
     `### 📊 数据条数 (count)\n` +
-    `- 默认12条，可设置1-50条`;
+    `- 默认12条，可设置1-50条\n\n` +
+    `### ⚠️ 注意事项\n` +
+    `- 所有指标数据正常获取，实时更新\n` +
+    `- 支持CPI、PMI、GDP、PPI、M2等主要宏观经济指标`;
 }
 
 // 获取数据源信息
