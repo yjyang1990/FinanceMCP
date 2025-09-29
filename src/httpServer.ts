@@ -22,6 +22,7 @@ import { companyPerformance_us } from "./tools/companyPerformance_us.js";
 import { csiIndexConstituents } from "./tools/csiIndexConstituents.js";
 import { dragonTigerInst } from "./tools/dragonTigerInst.js";
 import { hotNews } from "./tools/hotNews.js";
+import { macroEconReal } from "./tools/macroEconReal.js";
 
 // 时间戳工具（保留）
 const timestampTool = {
@@ -76,7 +77,8 @@ const toolList = [
   { name: companyPerformance_us.name, description: companyPerformance_us.description, inputSchema: companyPerformance_us.parameters },
   { name: csiIndexConstituents.name, description: csiIndexConstituents.description, inputSchema: csiIndexConstituents.parameters },
   { name: dragonTigerInst.name, description: dragonTigerInst.description, inputSchema: dragonTigerInst.parameters },
-  { name: hotNews.name, description: hotNews.description, inputSchema: hotNews.parameters }
+  { name: hotNews.name, description: hotNews.description, inputSchema: hotNews.parameters },
+  { name: macroEconReal.name, description: macroEconReal.description, inputSchema: macroEconReal.parameters }
 ];
 
 interface Session { id: string; createdAt: Date; lastActivity: Date }
@@ -270,6 +272,12 @@ app.post('/mcp', async (req: Request, res: Response) => {
             });
           case 'hot_news_7x24':
             return await hotNews.run({});
+          case 'macro_econ_real':
+            return await macroEconReal.run({
+              indicator: String(args?.indicator),
+              source: args?.source ? String(args.source) : undefined,
+              count: args?.count ? Number(args.count) : undefined,
+            });
           default:
             throw new Error(`Unknown tool: ${name}`);
         }

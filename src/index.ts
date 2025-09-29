@@ -24,6 +24,7 @@ import { companyPerformance_us } from "./tools/companyPerformance_us.js";
 import { csiIndexConstituents } from "./tools/csiIndexConstituents.js";
 import { dragonTigerInst } from "./tools/dragonTigerInst.js";
 import { hotNews } from "./tools/hotNews.js";
+import { macroEconReal } from "./tools/macroEconReal.js";
 
 
 
@@ -218,6 +219,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: hotNews.description,
         inputSchema: hotNews.parameters
       }
+      ,
+      {
+        name: macroEconReal.name,
+        description: macroEconReal.description,
+        inputSchema: macroEconReal.parameters
+      }
     ]
   };
 });
@@ -356,6 +363,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     case "hot_news_7x24": {
       return await hotNews.run({});
+    }
+
+    case "macro_econ_real": {
+      const indicator = String(request.params.arguments?.indicator);
+      const source = request.params.arguments?.source ? String(request.params.arguments.source) : undefined;
+      const count = request.params.arguments?.count ? Number(request.params.arguments.count) : undefined;
+      return await macroEconReal.run({ indicator, source, count });
     }
 
     default:
