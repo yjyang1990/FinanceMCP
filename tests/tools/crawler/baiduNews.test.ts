@@ -8,6 +8,10 @@ describe('baiduNews', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('searchBaiduNews', () => {
     it('should search with single keyword successfully', async () => {
       const mockHtml = `
