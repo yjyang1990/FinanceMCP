@@ -7,6 +7,7 @@ import {
 // 导入拆分后的模块
 import { fetchCryptoData } from './stockDataDetail/marketProviders/cryptoProvider.js';
 import { fetchTushareData } from './stockDataDetail/marketProviders/tushareProvider.js';
+import { fetchYahooFinanceData } from './stockDataDetail/marketProviders/yahooFinanceProvider.js';
 import {
   formatFxData,
   formatFuturesData,
@@ -113,18 +114,48 @@ export const stockData = {
         };
       }
 
-      // 使用Tushare数据提供者
-      const { stockData, indicators } = await fetchTushareData({
-        code: args.code,
-        marketType,
-        userStartDate,
-        userEndDate,
-        actualStartDate,
-        actualEndDate,
-        requestedIndicators,
-        originalStartDate: args.start_date,
-        originalEndDate: args.end_date
-      });
+      // 选择数据提供者：Yahoo Finance 优先，不支持的市场使用 Tushare
+      let stockData: Record<string, any>[];
+      let indicators: Record<string, any>;
+
+      if (['cn', 'us', 'hk'].includes(marketType)) {
+        // 使用 Yahoo Finance 数据提供者
+        try {
+          const yahooResult = await fetchYahooFinanceData({
+            code: args.code,
+            marketType,
+            userStartDate,
+            userEndDate,
+            actualStartDate,
+            actualEndDate,
+            requestedIndicators,
+            originalStartDate: args.start_date,
+            originalEndDate: args.end_date
+          });
+          stockData = yahooResult.stockData;
+          indicators = yahooResult.indicators;
+          console.log(`成功使用 Yahoo Finance 获取 ${marketType} 市场数据`);
+        } catch (yahooError) {
+          console.warn(`Yahoo Finance 获取失败，尝试使用 Tushare:`, yahooError);
+          // 降级到 Tushare
+          const tushareResult = await fetchTushareData({
+            code: args.code,
+            marketType,
+            userStartDate,
+            userEndDate,
+            actualStartDate,
+            actualEndDate,
+            requestedIndicators,
+            originalStartDate: args.start_date,
+            originalEndDate: args.end_date
+          });
+          stockData = tushareResult.stockData;
+          indicators = tushareResult.indicators;
+        }
+      } else {
+        // 其他市场类型仅支持 Tushare
+        throw new Error(`${getMarketTitle(marketType)}数据需要配置 Tushare API。支持的免费数据源：cn(A股)、us(美股)、hk(港股)、crypto(加密货币)`);
+      }
 
       // 格式化表格数据
       let formattedData = '';
@@ -176,7 +207,7 @@ export const stockData = {
         content: [
           {
             type: "text",
-            text: `# 获取股票${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码和市场类型是否正确：\n- A股格式："000001.SZ"\n- 美股格式："AAPL"\n- 港股格式："00700.HK"\n- 外汇格式："USDCNH.FXCM"（美元人民币）\n- 期货格式："CU2501.SHF"\n- 基金格式："159919.SZ"\n- 债券逆回购格式："204001.SH"\n- 可转债格式："113008.SH"\n- 期权格式："10001313.SH"\n\n技术指标使用说明（必须明确指定参数）：\n- **MACD**: macd(快线,慢线,信号线) - 例：macd(12,26,9)\n- **RSI**: rsi(周期) - 例：rsi(14)\n- **KDJ**: kdj(K周期,K平滑,D平滑) - 例：kdj(9,3,3)\n- **布林带**: boll(周期,标准差倍数) - 例：boll(20,2)\n- **移动平均线**: ma(周期) - 例：ma(5)、ma(10)、ma(20)\n\n使用示例：\n- "macd(12,26,9) rsi(14)"\n- "kdj(9,3,3) boll(20,2) ma(30)"\n- "macd(5,10,5) ma(5) ma(10)"`
+            text: `# 获取股票${args.code}数据失败\n\n无法获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码和市场类型是否正确：\n- A股格式："000001.SZ"\n- 美股格式："AAPL"\n- 港股格式："00700.HK"\n- 外汇格式："USDCNH.FXCM"（美元人民币）\n- 期货格式："CU2501.SHF"\n- 基金格式："159919.SZ"\n- 债券逆回购格式："204001.SH"\n- 可转债格式："113008.SH"\n- 期权格式："10001313.SH"\n\n技术指标使用说明（必须明确指定参数）：\n- **MACD**: macd(快线,慢线,信号线) - 例：macd(12,26,9)\n- **RSI**: rsi(周期) - 例：rsi(14)\n- **KDJ**: kdj(K周期,K平滑,D平滑) - 例：kdj(9,3,3)\n- **布林带**: boll(周期,标准差倍数) - 例：boll(20,2)\n- **移动平均线**: ma(周期) - 例：ma(5)、ma(10)、ma(20)\n\n使用示例：\n- "macd(12,26,9) rsi(14)"\n- "kdj(9,3,3) boll(20,2) ma(30)"\n- "macd(5,10,5) ma(5) ma(10)"`
           }
         ]
       };
