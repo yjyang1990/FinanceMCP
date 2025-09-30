@@ -5,23 +5,12 @@
 
 interface CompanyBasicData {
   ts_code: string;
-  com_name: string;
-  com_id: string;
+  symbol: string;
+  name: string;
+  area: string;
+  industry: string;
+  list_date: string;
   exchange: string;
-  chairman: string;
-  manager: string;
-  secretary: string;
-  reg_capital: number;
-  setup_date: string;
-  province: string;
-  city: string;
-  introduction?: string;
-  website: string;
-  email: string;
-  office?: string;
-  employees: number;
-  main_business?: string;
-  business_scope?: string;
 }
 
 /**
@@ -38,55 +27,39 @@ export function formatCompanyBasic(data: CompanyBasicData[]): string {
 
   // 基础信息表格展示
   result += `### 公司基础信息\n\n`;
-  result += `| 股票代码 | 公司全称 | 交易所 | 法人代表 | 总经理 | 董秘 | 注册资本(万元) | 注册日期 | 所在地区 |\n`;
-  result += `|---------|---------|--------|---------|--------|------|----------------|----------|----------|\n`;
+  result += `| 股票代码 | 公司名称 | 交易所 | 所在地区 | 行业 | 上市日期 |\n`;
+  result += `|---------|---------|--------|----------|------|----------|\n`;
 
   data.forEach((record: CompanyBasicData) => {
     const exchangeName = getExchangeName(record.exchange);
-    const regCapital = record.reg_capital ? (record.reg_capital / 10000).toFixed(2) : 'N/A';
-    const location = `${record.province || 'N/A'}${record.city ? '/' + record.city : ''}`;
-    
-    result += `| ${record.ts_code || 'N/A'} | ${record.com_name || 'N/A'} | ${exchangeName} | ${record.chairman || 'N/A'} | ${record.manager || 'N/A'} | ${record.secretary || 'N/A'} | ${regCapital} | ${formatDate(record.setup_date) || 'N/A'} | ${location} |\n`;
+    const listDate = formatDate(record.list_date) || 'N/A';
+
+    result += `| ${record.ts_code || 'N/A'} | ${record.name || 'N/A'} | ${exchangeName} | ${record.area || 'N/A'} | ${record.industry || 'N/A'} | ${listDate} |\n`;
   });
 
   // 公司详细信息（如果只查询单个公司）
   if (data.length === 1) {
     const company = data[0];
     result += `\n### 📋 详细信息\n\n`;
-    
-    if (company.com_id) {
-      result += `**统一社会信用代码：** ${company.com_id}\n\n`;
+
+    if (company.symbol) {
+      result += `**股票代码：** ${company.symbol}\n\n`;
     }
-    
-    if (company.employees && company.employees > 0) {
-      result += `**员工人数：** ${company.employees.toLocaleString()}人\n\n`;
+
+    if (company.name) {
+      result += `**公司名称：** ${company.name}\n\n`;
     }
-    
-    if (company.website) {
-      result += `**公司网站：** ${company.website}\n\n`;
+
+    if (company.area) {
+      result += `**所在地区：** ${company.area}\n\n`;
     }
-    
-    if (company.email) {
-      result += `**联系邮箱：** ${company.email}\n\n`;
+
+    if (company.industry) {
+      result += `**所属行业：** ${company.industry}\n\n`;
     }
-    
-    if (company.office) {
-      result += `**办公地址：** ${company.office}\n\n`;
-    }
-    
-    if (company.main_business) {
-      result += `**主要业务及产品：**\n`;
-      result += `${company.main_business}\n\n`;
-    }
-    
-    if (company.business_scope) {
-      result += `**经营范围：**\n`;
-      result += `${company.business_scope}\n\n`;
-    }
-    
-    if (company.introduction) {
-      result += `**公司介绍：**\n`;
-      result += `${company.introduction}\n\n`;
+
+    if (company.list_date) {
+      result += `**上市日期：** ${formatDate(company.list_date)}\n\n`;
     }
   }
 

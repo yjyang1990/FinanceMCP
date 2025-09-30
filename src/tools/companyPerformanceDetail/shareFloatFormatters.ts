@@ -1,80 +1,49 @@
-// 限售股解禁数据格式化器
+// 融资融券数据格式化器
 
-// 格式化限售股解禁数据
+// 格式化融资融券数据
 export function formatShareFloat(data: any[]): string {
   if (!data || data.length === 0) {
-    return 'ℹ️ 暂无限售股解禁数据\n\n';
+    return 'ℹ️ 暂无融资融券数据\n\n';
   }
 
   let output = '';
 
-  // 按解禁日期分组
-  const groupedByDate = data.reduce((acc, item) => {
-    const floatDate = item.float_date || '未知日期';
-    if (!acc[floatDate]) {
-      acc[floatDate] = [];
-    }
-    acc[floatDate].push(item);
-    return acc;
-  }, {} as Record<string, any[]>);
+  // 按交易日期排序（最新的在前）
+  const sortedData = data.sort((a, b) => (b.trade_date || '').localeCompare(a.trade_date || ''));
 
-  // 按解禁日期排序
-  const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
-    if (a === '未知日期') return 1;
-    if (b === '未知日期') return -1;
-    return b.localeCompare(a); // 最新日期在前
-  });
+  output += `📊 融资融券数据概况: 共 ${data.length} 条记录\n\n`;
 
-  for (const floatDate of sortedDates) {
-    const items = groupedByDate[floatDate];
-    
-    // 格式化解禁日期显示
-    const formattedDate = floatDate !== '未知日期' && floatDate.length === 8 
-      ? `${floatDate.substr(0,4)}-${floatDate.substr(4,2)}-${floatDate.substr(6,2)}`
-      : floatDate;
+  // 创建详细表格
+  output += `| 交易日期 | 融资余额(万元) | 融券余额(万股) | 融资融券余额(万元) |\n`;
+  output += `|---------|---------------|---------------|------------------|\n`;
 
-    output += `### 🗓️ 解禁日期: ${formattedDate}\n\n`;
+  // 添加数据行
+  for (const item of sortedData) {
+    const tradeDate = item.trade_date || 'N/A';
+    const rzye = item.rzye ? formatNumber(item.rzye / 10000) : 'N/A';
+    const rqye = item.rqye ? formatNumber(item.rqye / 10000) : 'N/A';
+    const rzrqYe = item.rzrq_ye ? formatNumber(item.rzrq_ye / 10000) : 'N/A';
 
-    // 计算该日期的汇总信息
-    const totalShares = items.reduce((sum: number, item: any) => sum + (parseFloat(item.float_share) || 0), 0);
-    const avgRatio = items.reduce((sum: number, item: any) => sum + (parseFloat(item.float_ratio) || 0), 0) / items.length;
-
-    output += `**汇总信息:**\n`;
-    output += `- 解禁总股数: ${formatNumber(totalShares)} 股\n`;
-    output += `- 平均占比: ${avgRatio.toFixed(4)}%\n`;
-    output += `- 解禁股东数: ${items.length} 个\n\n`;
-
-    // 按解禁股份数量排序
-    const sortedItems = items.sort((a: any, b: any) => (parseFloat(b.float_share) || 0) - (parseFloat(a.float_share) || 0));
-
-    output += `| 股东名称 | 解禁股份(股) | 占总股本比率(%) | 股份类型 | 公告日期 |\n`;
-    output += `|---------|-------------|----------------|----------|----------|\n`;
-
-    for (const item of sortedItems) {
-      const holderName = item.holder_name || '未知';
-      const floatShare = formatNumber(parseFloat(item.float_share) || 0);
-      const floatRatio = (parseFloat(item.float_ratio) || 0).toFixed(4);
-      const shareType = item.share_type || '未知';
-      const annDate = item.ann_date && item.ann_date.length === 8 
-        ? `${item.ann_date.substr(0,4)}-${item.ann_date.substr(4,2)}-${item.ann_date.substr(6,2)}`
-        : (item.ann_date || '未知');
-
-      output += `| ${holderName} | ${floatShare} | ${floatRatio} | ${shareType} | ${annDate} |\n`;
-    }
-
-    output += '\n';
+    output += `| ${tradeDate} | ${rzye} | ${rqye} | ${rzrqYe} |\n`;
   }
 
-  // 添加统计摘要
-  const totalAllShares = data.reduce((sum, item) => sum + (parseFloat(item.float_share) || 0), 0);
-  const uniqueHolders = new Set(data.map(item => item.holder_name)).size;
-  const shareTypes = [...new Set(data.map(item => item.share_type).filter(Boolean))];
+  output += '\n';
 
-  output += `### 📈 整体统计\n\n`;
-  output += `- **解禁总股数**: ${formatNumber(totalAllShares)} 股\n`;
-  output += `- **涉及股东**: ${uniqueHolders} 个\n`;
-  output += `- **股份类型**: ${shareTypes.join(', ')}\n`;
-  output += `- **解禁批次**: ${Object.keys(groupedByDate).length} 批\n\n`;
+  // 融资融券统计
+  const avgRzye = sortedData.reduce((sum, item) => sum + (item.rzye || 0), 0) / data.length;
+  const avgRqye = sortedData.reduce((sum, item) => sum + (item.rqye || 0), 0) / data.length;
+  const avgRzrqYe = sortedData.reduce((sum, item) => sum + (item.rzrq_ye || 0), 0) / data.length;
+
+  const maxRzye = Math.max(...sortedData.map(item => item.rzye || 0));
+  const minRzye = Math.min(...sortedData.map(item => item.rzye || 0));
+
+  output += `### 📈 融资融券统计\n\n`;
+  output += `- 平均融资余额: ${formatNumber(avgRzye / 10000)} 万元\n`;
+  output += `- 平均融券余额: ${formatNumber(avgRqye / 10000)} 万股\n`;
+  output += `- 平均融资融券余额: ${formatNumber(avgRzrqYe / 10000)} 万元\n`;
+  output += `- 最高融资余额: ${formatNumber(maxRzye / 10000)} 万元\n`;
+  output += `- 最低融资余额: ${formatNumber(minRzye / 10000)} 万元\n`;
+  output += `- 统计期间: ${data.length} 个交易日\n\n`;
 
   return output;
 }

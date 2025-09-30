@@ -49,58 +49,46 @@ export function formatHolderNumber(data: any[]): string {
   return output;
 }
 
-// 格式化股东增减持数据
+// 格式化龙虎榜数据 (之前命名有误，这是龙虎榜数据而非股东增减持)
 export function formatHolderTrade(data: any[]): string {
   if (!data || data.length === 0) {
     return `暂无数据\n\n`;
   }
 
   let output = '';
-  
-  // 按公告日期排序（最新的在前）
-  const sortedData = data.sort((a, b) => (b.ann_date || '').localeCompare(a.ann_date || ''));
-  
-  // 分类统计
-  const increaseData = sortedData.filter(item => item.in_de === 'IN');
-  const decreaseData = sortedData.filter(item => item.in_de === 'DE');
-  
-  output += `📊 增减持概况: 增持 ${increaseData.length} 条，减持 ${decreaseData.length} 条\n\n`;
-  
+
+  // 按交易日期排序（最新的在前）
+  const sortedData = data.sort((a, b) => (b.trade_date || '').localeCompare(a.trade_date || ''));
+
+  output += `📊 龙虎榜交易概况: 共 ${data.length} 条记录\n\n`;
+
   // 创建详细表格
-  output += `| 公告日期 | 股东名称 | 股东类型 | 增减持 | 变动数量(万股) | 变动比例(%) | 变动后持股(万股) | 变动后比例(%) | 均价(元) |\n`;
-  output += `|---------|---------|---------|--------|-------------|-----------|-------------|-------------|--------|\n`;
-  
+  output += `| 交易日期 | 上榜原因 | 买入金额(万元) | 卖出金额(万元) | 净买入(万元) |\n`;
+  output += `|---------|---------|---------------|---------------|-------------|\n`;
+
   // 添加数据行
   for (const item of sortedData) {
-    const annDate = item.ann_date || 'N/A';
-    const holderName = item.holder_name || 'N/A';
-    const holderType = getHolderType(item.holder_type);
-    const inDe = item.in_de === 'IN' ? '🔼 增持' : '🔽 减持';
-    const changeVol = item.change_vol ? formatNumber(item.change_vol / 10000) : 'N/A';
-    const changeRatio = item.change_ratio ? item.change_ratio.toFixed(4) : 'N/A';
-    const afterShare = item.after_share ? formatNumber(item.after_share / 10000) : 'N/A';
-    const afterRatio = item.after_ratio ? item.after_ratio.toFixed(4) : 'N/A';
-    const avgPrice = item.avg_price ? item.avg_price.toFixed(2) : 'N/A';
-    
-    output += `| ${annDate} | ${holderName} | ${holderType} | ${inDe} | ${changeVol} | ${changeRatio} | ${afterShare} | ${afterRatio} | ${avgPrice} |\n`;
+    const tradeDate = item.trade_date || 'N/A';
+    const explanation = item.explanation || 'N/A';
+    const totalBuy = item.total_buy ? formatNumber(item.total_buy / 10000) : 'N/A';
+    const totalSell = item.total_sell ? formatNumber(item.total_sell / 10000) : 'N/A';
+    const netBuy = item.net_buy ? formatNumber(item.net_buy / 10000) : 'N/A';
+
+    output += `| ${tradeDate} | ${explanation} | ${totalBuy} | ${totalSell} | ${netBuy} |\n`;
   }
-  
+
   output += '\n';
-  
-  // 增减持统计
-  if (increaseData.length > 0) {
-    output += `### 🔼 增持统计\n\n`;
-    const totalIncreaseVol = increaseData.reduce((sum, item) => sum + (item.change_vol || 0), 0);
-    output += `- 增持次数: ${increaseData.length} 次\n`;
-    output += `- 累计增持数量: ${formatNumber(totalIncreaseVol / 10000)} 万股\n\n`;
-  }
-  
-  if (decreaseData.length > 0) {
-    output += `### 🔽 减持统计\n\n`;
-    const totalDecreaseVol = decreaseData.reduce((sum, item) => sum + (item.change_vol || 0), 0);
-    output += `- 减持次数: ${decreaseData.length} 次\n`;
-    output += `- 累计减持数量: ${formatNumber(totalDecreaseVol / 10000)} 万股\n\n`;
-  }
-  
+
+  // 龙虎榜统计
+  const totalBuyAmount = sortedData.reduce((sum, item) => sum + (item.total_buy || 0), 0);
+  const totalSellAmount = sortedData.reduce((sum, item) => sum + (item.total_sell || 0), 0);
+  const totalNetBuy = sortedData.reduce((sum, item) => sum + (item.net_buy || 0), 0);
+
+  output += `### 📈 龙虎榜交易统计\n\n`;
+  output += `- 累计买入金额: ${formatNumber(totalBuyAmount / 10000)} 万元\n`;
+  output += `- 累计卖出金额: ${formatNumber(totalSellAmount / 10000)} 万元\n`;
+  output += `- 累计净买入: ${formatNumber(totalNetBuy / 10000)} 万元\n`;
+  output += `- 上榜次数: ${data.length} 次\n\n`;
+
   return output;
 } 
