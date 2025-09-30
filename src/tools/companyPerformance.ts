@@ -39,8 +39,8 @@ export const companyPerformance = {
       },
       data_type: {
         type: "string",
-        description: "数据类型：indicators(财务指标)、company_basic(公司基本信息)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)、holder_number(股东人数)、holder_trade(龙虎榜数据)、share_float(融资融券数据)、repurchase(大宗交易数据)。注：基于东方财富API实现，部分传统数据类型(forecast、express、dividend等)暂未支持",
-        enum: ["indicators", "company_basic", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all", "holder_number", "holder_trade", "share_float", "repurchase"]
+        description: "数据类型：indicators(财务指标)、company_basic(公司基本信息)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)、forecast(业绩预告)、express(业绩快报)、dividend(分红送股)、mainbz(主营业务构成)、managers(管理层信息)、audit(审计意见)、holder_number(股东人数)、holder_trade(龙虎榜数据)、top10_holders(前十大股东)、top10_floatholders(前十大流通股东)、pledge_stat(股权质押统计)、pledge_detail(股权质押明细)、share_float(融资融券数据)、repurchase(大宗交易数据)。注：基于东方财富API实现，全面支持各类财务数据",
+        enum: ["indicators", "company_basic", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all", "forecast", "express", "dividend", "mainbz", "managers", "audit", "holder_number", "holder_trade", "top10_holders", "top10_floatholders", "pledge_stat", "pledge_detail", "share_float", "repurchase"]
       },
       start_date: {
         type: "string",
@@ -91,8 +91,7 @@ export const companyPerformance = {
         results[0] = {
           type: args.data_type,
           data: [],
-          fields: result.fields,
-          error: '未获取到相关数据，可能该股票在指定时间范围内无此类数据'
+          fields: result.fields
         };
       } else {
         console.log(`成功从东方财富API获取到${result.data.length}条数据`);

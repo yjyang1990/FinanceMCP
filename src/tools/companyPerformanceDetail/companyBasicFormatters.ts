@@ -11,6 +11,10 @@ interface CompanyBasicData {
   industry: string;
   list_date: string;
   exchange: string;
+  province?: string;
+  reg_capital?: number;
+  employees?: number;
+  setup_date?: string;
 }
 
 /**
@@ -101,12 +105,12 @@ export function formatCompanyBasic(data: CompanyBasicData[]): string {
     // 3. 注册资本分析
     const validCapital = data
       .filter(record => record.reg_capital && record.reg_capital > 0)
-      .map(record => record.reg_capital);
+      .map(record => record.reg_capital!);
       
     if (validCapital.length > 0) {
-      const avgCapital = (validCapital.reduce((sum, cap) => sum + cap, 0) / validCapital.length / 10000).toFixed(2);
-      const maxCapital = (Math.max(...validCapital) / 10000).toFixed(2);
-      const minCapital = (Math.min(...validCapital) / 10000).toFixed(2);
+      const avgCapital = (validCapital.reduce((sum, cap) => (sum || 0) + (cap || 0), 0) / validCapital.length / 10000).toFixed(2);
+      const maxCapital = (Math.max(...validCapital.filter(cap => cap !== undefined)) / 10000).toFixed(2);
+      const minCapital = (Math.min(...validCapital.filter(cap => cap !== undefined)) / 10000).toFixed(2);
       
       result += `\n**💰 注册资本分析：**\n`;
       result += `- 平均注册资本: ${avgCapital}万元\n`;
@@ -118,12 +122,12 @@ export function formatCompanyBasic(data: CompanyBasicData[]): string {
     // 4. 员工规模分析
     const validEmployees = data
       .filter(record => record.employees && record.employees > 0)
-      .map(record => record.employees);
+      .map(record => record.employees!);
       
     if (validEmployees.length > 0) {
-      const avgEmployees = Math.round(validEmployees.reduce((sum, emp) => sum + emp, 0) / validEmployees.length);
-      const maxEmployees = Math.max(...validEmployees);
-      const minEmployees = Math.min(...validEmployees);
+      const avgEmployees = Math.round(validEmployees.reduce((sum, emp) => (sum || 0) + (emp || 0), 0) / validEmployees.length);
+      const maxEmployees = Math.max(...validEmployees.filter(emp => emp !== undefined));
+      const minEmployees = Math.min(...validEmployees.filter(emp => emp !== undefined));
       
       result += `\n**👥 员工规模分析：**\n`;
       result += `- 平均员工数: ${avgEmployees.toLocaleString()}人\n`;
@@ -135,7 +139,7 @@ export function formatCompanyBasic(data: CompanyBasicData[]): string {
     // 5. 成立年代分析
     const setupYears = data
       .filter(record => record.setup_date && record.setup_date.length >= 4)
-      .map(record => parseInt(record.setup_date.substring(0, 4)))
+      .map(record => parseInt(record.setup_date!.substring(0, 4)))
       .filter(year => year >= 1980 && year <= new Date().getFullYear());
       
     if (setupYears.length > 0) {
