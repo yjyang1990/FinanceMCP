@@ -268,7 +268,7 @@
 
 ```
 "查看比特币(BTC-USD) 2024-01-01 至 2024-06-30 的走势，计算 MACD(12,26,9) 和 RSI(14)"
-"查看 USDT 对 CNY 的日线走势：market_type=crypto, code=USDT.CNY, start_date=20240101, end_date=20240630"
+"查看 USDT 对 CNY 的日线走势：market_type=crypto, code=USDT.CNY, start_date=20250101, end_date=20240630"
 "使用 CoinGecko id 查询：market_type=crypto, code=bitcoin.usd, indicators=\"boll(20,2) ma(5) ma(10)\""
 ```
 

@@ -16,7 +16,7 @@ export const marginTrade = {
       },
       start_date: {
         type: "string",
-        description: "起始日期，格式YYYYMMDD，如'20240101'"
+        description: "起始日期，格式YYYYMMDD，如'20250101'"
       },
       end_date: {
         type: "string",
