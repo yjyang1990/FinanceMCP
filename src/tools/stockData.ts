@@ -9,6 +9,7 @@ import {
 import { fetchCryptoData } from './stockDataDetail/marketProviders/cryptoProvider.js';
 import { fetchTushareData } from './stockDataDetail/marketProviders/tushareProvider.js';
 import { fetchYahooFinanceData } from './stockDataDetail/marketProviders/yahooFinanceProvider.js';
+import { fetchEastMoneyData } from './stockDataDetail/marketProviders/eastMoneyProvider.js';
 import {
   formatFxData,
   formatFuturesData,
@@ -114,12 +115,65 @@ export const stockData = {
         };
       }
 
-      // 选择数据提供者：Yahoo Finance 优先，不支持的市场使用 Tushare
+      // 选择数据提供者
+      // A股优先级：东方财富 > Yahoo Finance > Tushare
+      // 美股/港股优先级：Yahoo Finance > Tushare
       let stockData: Record<string, any>[];
       let indicators: Record<string, any>;
 
-      if (['cn', 'us', 'hk'].includes(marketType)) {
-        // 使用 Yahoo Finance 数据提供者
+      if (marketType === 'cn') {
+        // A股市场：优先使用东方财富（免费且稳定）
+        try {
+          const eastMoneyResult = await fetchEastMoneyData({
+            code: args.code,
+            marketType,
+            userStartDate,
+            userEndDate,
+            actualStartDate,
+            actualEndDate,
+            requestedIndicators
+          });
+          stockData = eastMoneyResult.stockData;
+          indicators = eastMoneyResult.indicators;
+          console.log(`成功使用东方财富获取 A股 市场数据`);
+        } catch (eastMoneyError) {
+          console.warn(`东方财富获取失败，尝试使用 Yahoo Finance:`, eastMoneyError);
+          // 降级到 Yahoo Finance
+          try {
+            const yahooResult = await fetchYahooFinanceData({
+              code: args.code,
+              marketType,
+              userStartDate,
+              userEndDate,
+              actualStartDate,
+              actualEndDate,
+              requestedIndicators,
+              originalStartDate: args.start_date,
+              originalEndDate: args.end_date
+            });
+            stockData = yahooResult.stockData;
+            indicators = yahooResult.indicators;
+            console.log(`成功使用 Yahoo Finance 获取 A股 市场数据`);
+          } catch (yahooError) {
+            console.warn(`Yahoo Finance 获取失败，尝试使用 Tushare:`, yahooError);
+            // 最终降级到 Tushare
+            const tushareResult = await fetchTushareData({
+              code: args.code,
+              marketType,
+              userStartDate,
+              userEndDate,
+              actualStartDate,
+              actualEndDate,
+              requestedIndicators,
+              originalStartDate: args.start_date,
+              originalEndDate: args.end_date
+            });
+            stockData = tushareResult.stockData;
+            indicators = tushareResult.indicators;
+          }
+        }
+      } else if (['us', 'hk'].includes(marketType)) {
+        // 美股/港股市场：使用 Yahoo Finance
         try {
           const yahooResult = await fetchYahooFinanceData({
             code: args.code,
