@@ -6,6 +6,7 @@ import {
   calculateSMA,
   parseIndicatorParams,
   formatIndicatorParams,
+  expandIndicators,
   filterDataToUserRange
 } from '../index.js';
 
@@ -139,11 +140,14 @@ export async function fetchCryptoData(params: CryptoDataParams): Promise<CryptoD
   // 计算技术指标
   let indicators: Record<string, any> = {};
   if (requestedIndicators.length > 0) {
+    // 扩展多参数MA为多个单参数MA
+    const expandedIndicators = expandIndicators(requestedIndicators);
+
     let closes: number[] = stockData.map(d => parseFloat(d.close)).reverse();
     let highs: number[] = stockData.map(d => parseFloat(d.high)).reverse();
     let lows: number[] = stockData.map(d => parseFloat(d.low)).reverse();
 
-    for (const indicator of requestedIndicators) {
+    for (const indicator of expandedIndicators) {
       try {
         const { name, params } = parseIndicatorParams(indicator);
         switch (name) {

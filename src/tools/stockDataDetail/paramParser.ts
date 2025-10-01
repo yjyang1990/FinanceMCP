@@ -41,4 +41,29 @@ export function parseIndicatorParams(indicator: string): IndicatorParams {
  */
 export function formatIndicatorParams(name: string, params: number[]): string {
   return params.length > 0 ? `(${params.join(',')})` : '(默认)';
+}
+
+/**
+ * 预处理技术指标数组，将多参数MA扩展为多个单参数MA
+ * @param indicators 原始指标数组，如 ["ma(5,10,20)", "macd(12,26,9)"]
+ * @returns 扩展后的指标数组，如 ["ma(5)", "ma(10)", "ma(20)", "macd(12,26,9)"]
+ */
+export function expandIndicators(indicators: string[]): string[] {
+  const expanded: string[] = [];
+
+  for (const indicator of indicators) {
+    const { name, params } = parseIndicatorParams(indicator);
+
+    // 如果是MA且有多个参数，则展开为多个单参数MA
+    if (name === 'ma' && params.length > 1) {
+      for (const period of params) {
+        expanded.push(`ma(${period})`);
+      }
+    } else {
+      // 其他指标保持原样
+      expanded.push(indicator);
+    }
+  }
+
+  return expanded;
 } 

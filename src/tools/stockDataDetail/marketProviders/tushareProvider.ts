@@ -6,6 +6,7 @@ import {
   calculateBOLL,
   calculateSMA,
   parseIndicatorParams,
+  expandIndicators,
   filterDataToUserRange
 } from '../index.js';
 import { buildTushareParams } from '../utils/marketUtils.js';
@@ -158,6 +159,9 @@ export async function fetchTushareData(params: TushareDataParams): Promise<Tusha
     let indicators: Record<string, any> = {};
 
     if (requestedIndicators.length > 0 && ['cn', 'us', 'hk', 'fund', 'futures', 'convertible_bond', 'options', 'fx', 'crypto'].includes(marketType)) {
+      // 扩展多参数MA为多个单参数MA
+      const expandedIndicators = expandIndicators(requestedIndicators);
+
       // 对具有可用于OHLC的市场计算技术指标
       // 构建按时间正序的价格序列
       const mid = (a: any, b: any): number => {
@@ -183,7 +187,7 @@ export async function fetchTushareData(params: TushareDataParams): Promise<Tusha
         lows = stockData.map((d: Record<string, any>) => parseFloat(d.low)).reverse();
       }
 
-      for (const indicator of requestedIndicators) {
+      for (const indicator of expandedIndicators) {
         try {
           const { name, params } = parseIndicatorParams(indicator);
 

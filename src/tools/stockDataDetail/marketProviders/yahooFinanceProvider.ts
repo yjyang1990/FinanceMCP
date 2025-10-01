@@ -6,6 +6,7 @@ import {
   calculateBOLL,
   calculateSMA,
   parseIndicatorParams,
+  expandIndicators,
   filterDataToUserRange
 } from '../index.js';
 
@@ -175,12 +176,15 @@ export async function fetchYahooFinanceData(params: YahooFinanceDataParams): Pro
     let indicators: Record<string, any> = {};
 
     if (requestedIndicators.length > 0) {
+      // 扩展多参数MA为多个单参数MA
+      const expandedIndicators = expandIndicators(requestedIndicators);
+
       // 构建按时间正序的价格序列（技术指标计算需要）
       const closes = stockData.map(d => parseFloat(String(d.close))).reverse();
       const highs = stockData.map(d => parseFloat(String(d.high))).reverse();
       const lows = stockData.map(d => parseFloat(String(d.low))).reverse();
 
-      for (const indicator of requestedIndicators) {
+      for (const indicator of expandedIndicators) {
         try {
           const { name, params } = parseIndicatorParams(indicator);
 

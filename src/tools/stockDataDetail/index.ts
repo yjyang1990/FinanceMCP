@@ -5,6 +5,6 @@ export { calculateKDJ } from './kdj.js';
 export { calculateRSI } from './rsi.js';
 export { calculateBOLL } from './boll.js';
 export { calculateSMA, calculateEMA } from './ma.js';
-export { parseIndicatorParams, formatIndicatorParams } from './paramParser.js';
+export { parseIndicatorParams, formatIndicatorParams, expandIndicators } from './paramParser.js';
 export { calculateRequiredDays, calculateExtendedStartDate, filterDataToUserRange } from './dataCalculator.js';
 export type { IndicatorParams } from './paramParser.js'; 

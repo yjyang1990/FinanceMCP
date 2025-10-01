@@ -11,6 +11,7 @@ import {
   calculateBOLL,
   calculateSMA,
   parseIndicatorParams,
+  expandIndicators,
   filterDataToUserRange
 } from '../index.js';
 
@@ -166,12 +167,15 @@ export async function fetchEastMoneyData(params: EastMoneyDataParams): Promise<E
     let indicators: Record<string, any> = {};
 
     if (requestedIndicators.length > 0) {
+      // 扩展多参数MA为多个单参数MA
+      const expandedIndicators = expandIndicators(requestedIndicators);
+
       // 构建按时间正序的价格序列（用于技术指标计算）
       const closes = stockData.map(d => d.close).reverse();
       const highs = stockData.map(d => d.high).reverse();
       const lows = stockData.map(d => d.low).reverse();
 
-      for (const indicator of requestedIndicators) {
+      for (const indicator of expandedIndicators) {
         try {
           const { name, params } = parseIndicatorParams(indicator);
 
