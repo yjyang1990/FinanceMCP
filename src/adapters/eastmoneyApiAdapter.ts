@@ -246,29 +246,13 @@ export class EastMoneyApiAdapter {
 
   /**
    * 获取财务指标数据
+   * 使用季度财务数据接口提取指标，因为RPTA_DATA_IF_INDICATOR接口对部分股票返回空数据
    */
   private async fetchFinancialIndicators(secuCode: string): Promise<{ data: any[], fields: string[] }> {
-    // 获取财务指标
-    const params = {
-      reportName: 'RPTA_DATA_IF_INDICATOR',
-      columns: [
-        'SECUCODE', 'INDICATOR_ID', 'INDICATOR_NAME', 'INDICATOR_ORDER',
-        'UPDATE_DATE', 'UNIT', 'VALUE', 'UPDATE_FREQUENCY',
-        'INDICATOR_GRANULARITY', 'ORIG_NAME', 'CHART_TYPE', 'SOURCE'
-      ].join(','),
-      quoteColumns: '',
-      filter: `(SECUCODE="${secuCode}")`,
-      sortTypes: '1',
-      sortColumns: 'INDICATOR_ORDER',
-      pageNumber: 1,
-      pageSize: 100,
-      source: 'HSF10',
-      client: 'PC'
-    };
+    // 使用季度财务数据接口获取财务指标
+    const quarterlyResult = await this.fetchQuarterlyFinancialData(secuCode);
 
-    const result = await this.makeApiRequest(this.baseUrl, params);
-
-    const convertedData = this.convertFinancialIndicatorsData(result.data || [], secuCode);
+    const convertedData = this.convertQuarterlyToIndicators(quarterlyResult.data || [], secuCode);
     const fields = this.getFinancialIndicatorsFields();
 
     return { data: convertedData, fields };
@@ -502,6 +486,37 @@ export class EastMoneyApiAdapter {
     return convertedData;
   }
 
+  /**
+   * 将季度财务数据转换为财务指标格式
+   */
+  private convertQuarterlyToIndicators(rawData: any[], secuCode: string): any[] {
+    const convertedData: any[] = [];
+    const tushareCode = secuCode;
+
+    for (const row of rawData) {
+      const record: any = {
+        ts_code: tushareCode,
+        ann_date: this.convertDateFormat(row.REPORT_DATE),
+        end_date: this.convertDateFormat(row.REPORT_DATE),
+        period: this.convertDateFormat(row.REPORT_DATE),
+
+        // 从季度财务数据中提取关键财务指标
+        netprofit_margin: this.convertToNumber(row.NET_PROFIT_RATIO),  // 净利润率
+        roa: this.convertToNumber(row.JROA),  // 总资产收益率
+        roe: this.convertToNumber(row.ROE_DILUTED),  // 净资产收益率(摊薄)
+        grossprofit_margin: this.convertToNumber(row.GROSS_PROFIT_RATIO),  // 毛利率
+        eps: this.convertToNumber(row.EPSJB),  // 基本每股收益
+        bps: this.convertToNumber(row.BPS),  // 每股净资产
+        revenue_yoy: this.convertToNumber(row.TOTALOPERATEREVETZ),  // 营收同比增长率
+        profit_yoy: this.convertToNumber(row.PARENTNETPROFITTZ),  // 净利润同比增长率
+      };
+
+      convertedData.push(record);
+    }
+
+    return convertedData;
+  }
+
   private convertFinancialIndicatorsData(rawData: any[], secuCode: string): any[] {
     const convertedData: any[] = [];
     const tushareCode = secuCode;
@@ -710,7 +725,7 @@ export class EastMoneyApiAdapter {
   }
 
   private getFinancialIndicatorsFields(): string[] {
-    return ["ts_code", "ann_date", "end_date", "period", "netprofit_margin", "roa", "roe", "grossprofit_margin", "debt_to_assets", "current_ratio"];
+    return ["ts_code", "ann_date", "end_date", "period", "netprofit_margin", "roa", "roe", "grossprofit_margin", "eps", "bps", "revenue_yoy", "profit_yoy"];
   }
 
   private getHolderNumberFields(): string[] {
