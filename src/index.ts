@@ -314,9 +314,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     case "money_flow": {
-      const ts_code = request.params.arguments?.ts_code ? String(request.params.arguments.ts_code) : undefined;
-      const start_date = String(request.params.arguments?.start_date);
-      const end_date = String(request.params.arguments?.end_date);
+      const ts_code = request.params.arguments?.ts_code ? String(request.params.arguments.ts_code) : '';
+      const start_date = String(request.params.arguments?.start_date || '');
+      const end_date = String(request.params.arguments?.end_date || '');
       return await moneyFlow.run({ ts_code, start_date, end_date });
     }
 

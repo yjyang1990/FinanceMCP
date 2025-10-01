@@ -1,16 +1,22 @@
 import { TUSHARE_CONFIG } from '../config.js';
 import { resolveStockCodes } from '../utils/stockCodeResolver.js';
+import {
+  convertToEastmoneyCode,
+  convertToEastmoneyKlt,
+  convertToEastmoneyDate,
+  fetchEastmoneyKline
+} from '../utils/eastmoneyApi.js';
 
 /**
  * 分钟K线数据工具（A股/加密）
  * 说明：
- * - market_type = 'cn' 走 Tushare 分钟线接口（stk_mins）
+ * - market_type = 'cn' 走东方财富分钟线接口（免Token）
  * - market_type = 'crypto' 走 Binance 分钟线接口（/api/v3/klines）
  * 按指定时间范围与频率返回分钟级K线。
  */
 export const stockDataMinutes = {
   name: 'stock_data_minutes',
-  description: '获取分钟K线数据：A股/加密。支持1MIN/5MIN/15MIN/30MIN/60MIN，时间范围需提供起止日期时间',
+  description: '获取分钟K线数据：A股（东方财富，免Token）/加密（Binance）。支持1MIN/5MIN/15MIN/30MIN/60MIN，时间范围需提供起止日期时间',
   parameters: {
     type: 'object',
     properties: {
@@ -77,47 +83,29 @@ export const stockDataMinutes = {
       }
 
       if (market === 'cn') {
-        if (!TUSHARE_API_KEY) {
-          throw new Error('缺少 Tushare Token：请在请求头 X-Tushare-Token 或环境变量 TUSHARE_TOKEN 中提供');
-        }
-        // 组装请求（Tushare 分钟线：stk_mins）
-        const requestBody: any = {
-          api_name: 'stk_mins',
-          token: TUSHARE_API_KEY,
-          params: {
-            ts_code: args.code,
-            start_time: startTime,
-            end_time: endTime,
-            freq: freq
-          }
-          // 不指定 fields，默认返回全部
-        };
-
-        // 超时控制
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
-
+        // ===== 使用东方财富API（免Token）=====
         try {
-          const resp = await fetch(TUSHARE_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody),
-            signal: controller.signal
+          // 1. 转换股票代码格式
+          const secid = convertToEastmoneyCode(args.code);
+
+          // 2. 转换时间周期
+          const klt = convertToEastmoneyKlt(freq);
+
+          // 3. 转换时间格式（提取日期部分）
+          const beg = convertToEastmoneyDate(startTime);
+          const end = convertToEastmoneyDate(endTime);
+
+          // 4. 请求东方财富API
+          const klines = await fetchEastmoneyKline({
+            secid,
+            klt,
+            fqt: 1,  // 前复权
+            beg,
+            end,
+            lmt: 1000
           });
 
-          clearTimeout(timeoutId);
-
-          if (!resp.ok) {
-            throw new Error(`Tushare HTTP ${resp.status}`);
-          }
-          const data = await resp.json();
-          if (data.code !== 0) {
-            throw new Error(`Tushare API错误: ${data.msg || 'unknown error'}`);
-          }
-
-          const fields: string[] = data.data?.fields || [];
-          const items: any[] = data.data?.items || [];
-          if (!fields.length || !items.length) {
+          if (!klines || klines.length === 0) {
             return {
               content: [{
                 type: 'text',
@@ -126,40 +114,24 @@ export const stockDataMinutes = {
             };
           }
 
-          // 转对象数组
-          const rows = items.map(row => {
-            const obj: Record<string, any> = {};
-            fields.forEach((f: string, i: number) => (obj[f] = row[i]));
-            return obj;
-          });
-
-          // 常见字段名兼容：trade_time/time/datetime
-          const timeKey = ['trade_time', 'time', 'datetime'].find(k => fields.includes(k)) || 'trade_time';
-          const openKey = ['open'].find(k => fields.includes(k)) || 'open';
-          const highKey = ['high'].find(k => fields.includes(k)) || 'high';
-          const lowKey = ['low'].find(k => fields.includes(k)) || 'low';
-          const closeKey = ['close'].find(k => fields.includes(k)) || 'close';
-          const volKey = ['vol', 'volume'].find(k => fields.includes(k)) || 'vol';
-          const amountKey = ['amount', 'amt'].find(k => fields.includes(k)) || 'amount';
-
           // 按时间倒序（最新在上）
-          rows.sort((a, b) => String(b[timeKey] || '').localeCompare(String(a[timeKey] || '')));
+          klines.sort((a, b) => String(b.trade_time || '').localeCompare(String(a.trade_time || '')));
 
           // 构造表格
-          let out = `# ${args.code} 分钟K线（${freq}）\n\n`;
+          let out = `# ${args.code} 分钟K线（${freq}，东方财富）\n\n`;
           out += `查询区间: ${startTime} - ${endTime}\n`;
-          out += `返回条数: ${rows.length}\n\n`;
-          const headers = ['时间', '开盘', '最高', '最低', '收盘', '成交量', '成交额(万元)'];
+          out += `返回条数: ${klines.length}\n\n`;
+          const headers = ['时间', '开盘', '最高', '最低', '收盘', '成交量', '成交额'];
           out += `| ${headers.join(' | ')} |\n`;
           out += `|${headers.map(() => '--------').join('|')}|\n`;
-          for (const r of rows) {
-            const t = r[timeKey] ?? 'N/A';
-            const o = safeNum(r[openKey]);
-            const h = safeNum(r[highKey]);
-            const l = safeNum(r[lowKey]);
-            const c = safeNum(r[closeKey]);
-            const v = r[volKey] == null ? 'N/A' : String(r[volKey]);
-            const amt = r[amountKey] == null ? 'N/A' : String(r[amountKey]);
+          for (const r of klines) {
+            const t = r.trade_time ?? 'N/A';
+            const o = safeNum(r.open);
+            const h = safeNum(r.high);
+            const l = safeNum(r.low);
+            const c = safeNum(r.close);
+            const v = r.vol == null ? 'N/A' : String(r.vol);
+            const amt = r.amount == null ? 'N/A' : String(r.amount);
             out += `| ${t} | ${fmt(o)} | ${fmt(h)} | ${fmt(l)} | ${fmt(c)} | ${v} | ${amt} |\n`;
           }
 
@@ -168,11 +140,10 @@ export const stockDataMinutes = {
           if (market === 'cn') {
             stockExplanation = await resolveStockCodes([args.code]);
           }
-          
+
           return { content: [{ type: 'text', text: out + stockExplanation }] };
-        } finally {
-          // 兜底清理
-          // clearTimeout 在 try 内处理；此处确保未走到前面时也释放
+        } catch (error) {
+          throw new Error(`东方财富API错误: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 

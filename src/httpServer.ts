@@ -230,9 +230,9 @@ app.post('/mcp', async (req: Request, res: Response) => {
             });
           case 'money_flow':
             return await moneyFlow.run({
-              ts_code: args?.ts_code ? String(args.ts_code) : undefined,
-              start_date: String(args?.start_date),
-              end_date: String(args?.end_date),
+              ts_code: args?.ts_code ? String(args.ts_code) : '',
+              start_date: String(args?.start_date || ''),
+              end_date: String(args?.end_date || ''),
             });
           case 'margin_trade':
             return await marginTrade.run({
