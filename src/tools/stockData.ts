@@ -1,4 +1,4 @@
-import { resolveStockCodes } from '../utils/stockCodeResolver.js';
+import { resolveStockCodes } from '../utils/stockCodeResolver.eastmoney.js';
 import { TUSHARE_CONFIG } from '../config.js';
 import {
   calculateRequiredDays,

@@ -1,5 +1,5 @@
 import { TUSHARE_CONFIG } from '../config.js';
-import { resolveStockCodes } from '../utils/stockCodeResolver.js';
+import { resolveStockCodes } from '../utils/stockCodeResolver.eastmoney.js';
 
 export const blockTrade = {
   name: "block_trade",

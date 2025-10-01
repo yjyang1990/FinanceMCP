@@ -1,4 +1,4 @@
-import { resolveStockCodes } from '../utils/stockCodeResolver.js';
+import { resolveStockCodes } from '../utils/stockCodeResolver.eastmoney.js';
 
 /**
  * 龙虎榜机构成交明细工具
