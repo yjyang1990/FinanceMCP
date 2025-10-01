@@ -1,5 +1,24 @@
-import { TUSHARE_CONFIG } from '../config.js';
 import { NewsItem } from './financeNews.js';
+
+interface EastMoneyNewsItem {
+  summary: string;
+  code: string;
+  title: string;
+  showTime: string;
+  stockList: string[];
+  image: string[];
+}
+
+interface EastMoneyResponse {
+  code: string;
+  message: string;
+  data: {
+    sortEnd: string;
+    total: number;
+    size: number;
+    fastNewsList: EastMoneyNewsItem[];
+  };
+}
 
 function normalizeText(text: string): string {
   return (text || '')
@@ -49,64 +68,55 @@ function deduplicateByContent(items: NewsItem[], threshold = 0.8): NewsItem[] {
   return representatives;
 }
 
-async function fetchTushareNewsBatch(maxTotal: number, logs?: string[]): Promise<NewsItem[]> {
-  if (!TUSHARE_CONFIG.API_TOKEN) {
-    logs?.push('[WARN] 未配置 TUSHARE_TOKEN，无法从 Tushare 获取数据');
-    return [];
-  }
+async function fetchEastMoneyNewsBatch(pageSize: number, logs?: string[]): Promise<NewsItem[]> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
   try {
-    const body = {
-      api_name: 'news',
-      token: TUSHARE_CONFIG.API_TOKEN,
-      // 不传任何筛选参数，直接获取默认的最新数据
-      params: {},
-      fields: 'datetime,content,title,channels'
-    } as const;
-    const resp = await fetch(TUSHARE_CONFIG.API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+    const reqTrace = Date.now().toString();
+    const url = `https://np-weblist.eastmoney.com/comm/web/getFastNewsList?client=web&biz=web_724&fastColumn=102&sortEnd=&pageSize=${pageSize}&req_trace=${reqTrace}`;
+
+    const resp = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+      },
       signal: controller.signal
     });
     clearTimeout(timeoutId);
+
     if (!resp.ok) {
-      const msg = `Tushare请求失败: HTTP ${resp.status}`;
+      const msg = `东方财富请求失败: HTTP ${resp.status}`;
       logs?.push(`[ERROR] ${msg}`);
       return [];
     }
-    const data = await resp.json();
-    if (data.code !== 0) {
-      const msg = `Tushare返回错误: ${data.msg || data.message || '未知错误'}`;
+
+    const data = await resp.json() as EastMoneyResponse;
+    if (data.code !== '1') {
+      const msg = `东方财富返回错误: ${data.message || '未知错误'}`;
       logs?.push(`[ERROR] ${msg}`);
       return [];
     }
-    const fields: string[] = data.data?.fields ?? [];
-    const items: any[][] = data.data?.items ?? [];
-    const idxDatetime = fields.indexOf('datetime');
-    const idxContent = fields.indexOf('content');
-    const idxTitle = fields.indexOf('title');
+
     const results: NewsItem[] = [];
-    for (const row of items) {
-      if (results.length >= maxTotal) break;
-      const title = String(row[idxTitle] ?? '').trim();
-      const content = String(row[idxContent] ?? '').trim();
-      const datetime = String(row[idxDatetime] ?? '').trim();
+    const newsList = data.data?.fastNewsList ?? [];
+
+    for (const item of newsList) {
       results.push({
-        title,
-        summary: content,
+        title: item.title || '',
+        summary: item.summary || '',
         url: '',
-        source: 'Tushare',
-        publishTime: datetime,
+        source: '东方财富',
+        publishTime: item.showTime || '',
         keywords: []
       });
     }
-    logs?.push(`[INFO] 从 Tushare 获取原始条数: ${results.length}`);
+
+    logs?.push(`[INFO] 从东方财富获取原始条数: ${results.length}`);
     return results;
   } catch (err) {
     clearTimeout(timeoutId);
-    const msg = `获取Tushare新闻失败: ${err instanceof Error ? err.message : String(err)}`;
+    const msg = `获取东方财富新闻失败: ${err instanceof Error ? err.message : String(err)}`;
     console.error(msg);
     logs?.push(`[ERROR] ${msg}`);
     return [];
@@ -115,15 +125,15 @@ async function fetchTushareNewsBatch(maxTotal: number, logs?: string[]): Promise
 
 export const hotNews = {
   name: 'hot_news_7x24',
-  description: '7x24热点：从Tushare新闻接口获取最新的财经、政治、科技、体育、娱乐、军事、社会、国际等新闻',
+  description: '7x24热点：从东方财富新闻接口获取最新的财经、政治、科技、体育、娱乐、军事、社会、国际等新闻',
   parameters: {
     type: 'object',
     properties: {
       limit: {
         type: 'number',
-        description: '返回条数，默认100，上限1500。接口按此数量向Tushare请求后再进行内容相似度去重',
+        description: '返回条数，默认100，上限500。接口按此数量向东方财富请求后再进行内容相似度去重',
         minimum: 1,
-        maximum: 1500
+        maximum: 500
       }
     }
   },
@@ -131,14 +141,14 @@ export const hotNews = {
     try {
       const logs: string[] = [];
       const rawLimit = typeof _args?.limit === 'number' && isFinite(_args.limit) ? Math.floor(_args.limit) : 100;
-      const limit = Math.min(1500, Math.max(1, rawLimit));
+      const limit = Math.min(500, Math.max(1, rawLimit));
       logs.push(`[START] hot_news_7x24 获取最新批次（limit=${limit}）`);
-      const raw = await fetchTushareNewsBatch(limit, logs);
+      const raw = await fetchEastMoneyNewsBatch(limit, logs);
       const deduped = deduplicateByContent(raw, 0.8);
       logs.push(`[INFO] 去重后条数: ${deduped.length}`);
 
       if (deduped.length === 0) {
-        const hint = '可能原因：1) 未配置 Tushare Token；2) 被频控限制；3) 网络/服务异常。';
+        const hint = '可能原因：1) 网络连接异常；2) 东方财富服务异常。';
         return { content: [
           { type: 'text', text: `# 7x24 热点\n\n暂无数据\n${hint}` },
           { type: 'text', text: `## 调用日志\n\n${logs.join('\n')}` }
@@ -166,7 +176,7 @@ export const hotNews = {
       const uniqueDays = Array.from(daySet.values()).sort();
       const dayInfo = uniqueDays.length ? `日期：${uniqueDays.join('、')}` : `日期：未知`;
 
-      const footer = `\n\n—\n统计：共 ${deduped.length} 条；来源分布：${sourceStats || '无'}\n${dayInfo}\n数据来源：Tushare 新闻快讯 (<https://tushare.pro/document/2?doc_id=143>)`;
+      const footer = `\n\n—\n统计：共 ${deduped.length} 条；来源分布：${sourceStats || '无'}\n${dayInfo}\n数据来源：东方财富7x24快讯 (<https://kuaixun.eastmoney.com/>)`;
 
       return {
         content: [
