@@ -301,7 +301,7 @@ function extractStockstarContent(html: string): string {
       }
     }
 
-    console.log('证券之星特定提取失败');
+    console.log('证券之星特定提取不适用，切换到通用提取策略');
     return '';
   } catch (error) {
     console.error('证券之星内容提取失败:', error);
